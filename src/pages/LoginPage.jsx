@@ -1,24 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser } from '../redux/authSlice';
+import { Link } from 'react-router-dom';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { user, token, loading, error } = useSelector((state) => state.auth);
+
   const handleLogin = (e) => {
     e.preventDefault();
-    console.log('Logging in with:', email, password);
-    // TODO: Send login request to backend
     if (email && password) {
-        navigate('/feedback'); // ← Redirect to feedback page
-      }
+      dispatch(loginUser({ email, password }));
+    }
   };
+
+  useEffect(() => {
+    console.log("👀 user:", user);
+    console.log("🔐 token:", token);
+    if (user && token) {
+      navigate('/feedback');
+    }
+  }, [user, token, navigate]);
+  
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
       <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
         <h2 className="text-2xl font-bold text-center mb-6">Client Feedback Portal</h2>
+        {error && <p className="text-red-500 mb-4 text-sm text-center">{error}</p>}
+  
         <form onSubmit={handleLogin} className="space-y-5">
+          {/* Email */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email address</label>
             <input
@@ -31,7 +49,8 @@ const LoginPage = () => {
               required
             />
           </div>
-
+  
+          {/* Password */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
             <input
@@ -44,17 +63,28 @@ const LoginPage = () => {
               required
             />
           </div>
-
+  
+          {/* Submit Button */}
           <button
             type="submit"
+            disabled={loading}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-semibold transition duration-200"
           >
-            Login
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
+  
+        {/* Register Link */}
+        <p className="mt-4 text-center text-sm text-gray-600">
+          New here?{' '}
+          <Link to="/register" className="text-blue-600 hover:underline">
+            Create an account
+          </Link>
+        </p>
       </div>
     </div>
   );
+  
 };
 
 export default LoginPage;
