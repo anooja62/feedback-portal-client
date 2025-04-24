@@ -1,21 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { submitFeedback } from '../redux/feedbackSlice';
 
 const FeedbackPage = () => {
   const [feedback, setFeedback] = useState('');
   const [rating, setRating] = useState(0);
   const [image, setImage] = useState(null);
 
+  const dispatch = useDispatch();
+
+  const { loading, error, success } = useSelector((state) => state.feedback);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData();
-    formData.append('feedback', feedback);
+    formData.append('text', feedback);
     formData.append('rating', rating);
     if (image) formData.append('image', image);
 
-    // TODO: Send formData to backend via Axios
-    console.log('Submitting:', { feedback, rating, image });
+    dispatch(submitFeedback(formData)); 
   };
-
+  useEffect(() => {
+    if (success) {
+      setFeedback('');
+      setRating(0);
+      setImage(null);
+    }
+  }, [success]);
   const handleRatingClick = (value) => {
     setRating(value);
   };
@@ -24,11 +35,16 @@ const FeedbackPage = () => {
     <div className="min-h-screen flex justify-center items-center bg-gray-100 px-4 py-10">
       <div className="w-full max-w-lg bg-white p-8 rounded-2xl shadow-md">
         <h2 className="text-2xl font-semibold text-center mb-6">Submit Your Feedback</h2>
+
+        {/* Success and Error Messages */}
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+        {success && <p className="text-green-500 text-sm text-center">{success}</p>}
+
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="feedback" className="block mb-1 font-medium text-gray-700">Your Feedback</label>
+            <label htmlFor="text" className="block mb-1 font-medium text-gray-700">Your Feedback</label>
             <textarea
-              id="feedback"
+              id="text"
               rows="4"
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
               placeholder="Share your experience..."
@@ -67,8 +83,9 @@ const FeedbackPage = () => {
           <button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-semibold transition duration-200"
+            disabled={loading}  
           >
-            Submit Feedback
+            {loading ? 'Submitting...' : 'Submit Feedback'}
           </button>
         </form>
       </div>

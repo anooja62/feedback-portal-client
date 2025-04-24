@@ -24,6 +24,7 @@ export const loginUser = createAsyncThunk(
     try {
       const res = await axios.post(`${API_URL}/api/auth/login`, { email, password });
       console.log('✌️res.data --->', res.data);
+      localStorage.setItem('token', res.data.token);
       return res.data;
 
     } catch (err) {
@@ -36,7 +37,7 @@ const authSlice = createSlice({
   name: 'auth',
   initialState: {
     user: null,
-    token: null,
+    token: localStorage.getItem('token') || null,
     loading: false,
     error: null,
   },
@@ -44,6 +45,7 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.token = null;
+      localStorage.removeItem('token');
     },
   },
   extraReducers: (builder) => {
