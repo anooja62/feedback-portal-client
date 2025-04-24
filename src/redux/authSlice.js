@@ -24,7 +24,9 @@ export const loginUser = createAsyncThunk(
     try {
       const res = await axios.post(`${API_URL}/api/auth/login`, { email, password });
       console.log('✌️res.data --->', res.data);
-      localStorage.setItem('token', res.data.token);
+      const { user, token } = res.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
       return res.data;
 
     } catch (err) {
@@ -36,7 +38,7 @@ export const loginUser = createAsyncThunk(
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user: null,
+    user: JSON.parse(localStorage.getItem('user')) || null,
     token: localStorage.getItem('token') || null,
     loading: false,
     error: null,
@@ -46,6 +48,7 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
     },
   },
   extraReducers: (builder) => {
@@ -59,6 +62,8 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload.user;
         state.token = action.payload.token;
+        localStorage.setItem('token', action.payload.token);
+        localStorage.setItem('user', JSON.stringify(action.payload.user));
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;

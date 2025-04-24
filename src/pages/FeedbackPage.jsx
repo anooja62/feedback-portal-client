@@ -1,6 +1,8 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { submitFeedback } from '../redux/feedbackSlice';
+import { logout } from '../redux/authSlice'; // Import the logout action
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for redirection
 
 const FeedbackPage = () => {
   const [feedback, setFeedback] = useState('');
@@ -8,8 +10,10 @@ const FeedbackPage = () => {
   const [image, setImage] = useState(null);
 
   const dispatch = useDispatch();
+  const navigate = useNavigate(); // Initialize navigate
 
   const { loading, error, success } = useSelector((state) => state.feedback);
+  //const { user } = useSelector((state) => state.auth); // Get the user from Redux store
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -20,6 +24,7 @@ const FeedbackPage = () => {
 
     dispatch(submitFeedback(formData)); 
   };
+
   useEffect(() => {
     if (success) {
       setFeedback('');
@@ -27,13 +32,31 @@ const FeedbackPage = () => {
       setImage(null);
     }
   }, [success]);
+
   const handleRatingClick = (value) => {
     setRating(value);
+  };
+
+  const handleLogout = () => {
+    const confirmLogout = window.confirm('Are you sure you want to log out?');
+    if (confirmLogout) {
+      dispatch(logout()); 
+      navigate('/login'); 
+    }
   };
 
   return (
     <div className="min-h-screen flex justify-center items-center bg-gray-100 px-4 py-10">
       <div className="w-full max-w-lg bg-white p-8 rounded-2xl shadow-md">
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="absolute top-4 right-4 bg-red-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-600 transition duration-200"
+        >
+          Logout
+        </button>
+
+
         <h2 className="text-2xl font-semibold text-center mb-6">Submit Your Feedback</h2>
 
         {/* Success and Error Messages */}

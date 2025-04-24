@@ -23,10 +23,17 @@ const LoginPage = () => {
   useEffect(() => {
     console.log("👀 user:", user);
     console.log("🔐 token:", token);
+  
     if (user && token) {
-      navigate('/feedback');
+      // Check if the user has an admin role
+      if (user.role === 'admin') {
+        navigate('/admin');  // Navigate to the admin page if the user is an admin
+      } else {
+        navigate('/feedback');  // Navigate to the feedback page if the user is not an admin
+      }
     }
   }, [user, token, navigate]);
+  
   
 
   return (
