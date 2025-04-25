@@ -136,12 +136,17 @@ const FeedbackPage = () => {
                 </span>
               </div>
             </div>
+            {image && (
+    <p className="mt-2 text-sm text-gray-600 text-center">
+      Selected file: <span className="font-medium">{image.name}</span>
+    </p>
+  )}
           </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-semibold transition duration-200"
-            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-semibold transition duration-200 disabled:bg-blue-300 disabled:cursor-not-allowed"
+            disabled={loading || rating === 0 || feedback.trim() === ""}
           >
             {loading ? "Submitting..." : "Submit Feedback"}
           </button>
