@@ -61,25 +61,26 @@ export const submitReply = createAsyncThunk(
 );
 export const fetchReplySuggestions = createAsyncThunk(
   "feedback/fetchReplySuggestions",
-  async (feedbackText, thunkAPI) => {
+  async ({ feedbackId, feedbackText }, thunkAPI) => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        "http://localhost:8000/api/suggest-replies",  // Make sure this matches your backend endpoint
+        "http://localhost:8000/api/suggest-replies",
         { feedbackText },
         {
           headers: {
-            Authorization: `Bearer ${token}`,  // Include token
+            Authorization: `Bearer ${token}`,
           },
         }
       );
-      return res.data.suggestions;
+      return { feedbackId, suggestions: res.data.suggestions };
     } catch (err) {
       console.error("❌ Suggestion Fetch Error:", err.response?.data || err.message);
       return thunkAPI.rejectWithValue("Failed to fetch suggestions");
     }
   }
 );
+
 
 
 const initialState = {
@@ -89,6 +90,7 @@ const initialState = {
   feedbackList: [],
   successMessage: '',
   errorMessage: '',
+  suggestions: {},
 };
 
 const feedbackSlice = createSlice({
@@ -162,9 +164,16 @@ const feedbackSlice = createSlice({
     state.error = null;
   })
   .addCase(fetchReplySuggestions.fulfilled, (state, action) => {
-    state.loading = false;
-    state.suggestions = action.payload;  
+    const { feedbackId, suggestions } = action.payload;
+
+    const parsedSuggestions = suggestions
+      .split(/\d+\.\s+/) // splits at "1. ", "2. ", etc.
+      .map(s => s.trim())
+      .filter(Boolean); // remove empty strings
+
+    state.suggestions[feedbackId] = parsedSuggestions;
   })
+
   .addCase(fetchReplySuggestions.rejected, (state, action) => {
     state.loading = false;
     state.error = action.payload;

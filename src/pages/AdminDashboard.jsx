@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   fetchFeedback,
   submitReply,
-  //fetchReplySuggestions, 
+  fetchReplySuggestions, 
 } from "../redux/feedbackSlice";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../redux/authSlice";
@@ -12,10 +12,10 @@ const AdminDashboard = () => {
   const [sortOrder, setSortOrder] = useState("desc");
   const [filteredFeedback, setFilteredFeedback] = useState([]);
   const [replies, setReplies] = useState({});
-  //const [suggestionLoadingId, setSuggestionLoadingId] = useState(null); // NEW
+  const [suggestionLoadingId, setSuggestionLoadingId] = useState(null); // NEW
   const navigate = useNavigate();
 
-  const { feedbackList, loading, error } = useSelector(
+  const { feedbackList, error,suggestions } = useSelector(
     (state) => state.feedback
   );
   const dispatch = useDispatch();
@@ -50,7 +50,10 @@ const AdminDashboard = () => {
       navigate("/login");
     }
   };
-
+  useEffect(() => {
+    console.log("Suggestions state:", suggestions);
+  }, [suggestions]);
+  
   const handleReplyChange = (feedbackId, reply) => {
     setReplies((prev) => ({ ...prev, [feedbackId]: reply }));
   };
@@ -63,15 +66,32 @@ const AdminDashboard = () => {
     }
   };
 
-  // const handleFetchSuggestions = async (feedbackId, text) => {
-  //   setSuggestionLoadingId(feedbackId);
-  //   await dispatch(fetchReplySuggestions(text));
-  //   setSuggestionLoadingId(null);
-  // };
+  const handleFetchSuggestions = async (feedbackId, text) => {
+    setSuggestionLoadingId(feedbackId);  // Start loading
+    const resultAction = await dispatch(fetchReplySuggestions({ feedbackId, feedbackText: text }));
+    setSuggestionLoadingId(null);  // End loading
+  
+    if (fetchReplySuggestions.fulfilled.match(resultAction)) {
+      console.log("Fetched Suggestions:", resultAction.payload);
+      const firstSuggestion = resultAction.payload?.[0];
+      if (firstSuggestion) {
+        setReplies((prev) => ({ ...prev, [feedbackId]: firstSuggestion }));
+      }
+    }
+  };
+  
+  
+  
+  
+  
 
-  // const handleSuggestionClick = (feedbackId, suggestion) => {
-  //   setReplies((prev) => ({ ...prev, [feedbackId]: suggestion }));
-  // };
+  const handleSuggestionClick = (feedbackId, suggestion) => {
+    setReplies((prev) => ({
+      ...prev,
+      [feedbackId]: suggestion, // replace instead of append
+    }));
+  };
+  
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
@@ -110,9 +130,9 @@ const AdminDashboard = () => {
       </div>
 
       <div className="overflow-x-auto mb-6">
-        {loading ? (
-          <p>Loading...</p>
-        ) : error ? (
+     
+        
+    {error ? (
           <p className="text-red-500">{error}</p>
         ) : (
           <table className="min-w-full bg-white border rounded-lg">
@@ -134,52 +154,50 @@ const AdminDashboard = () => {
                   <td className="py-2 px-4 border">
                     {new Date(item.created_at).toLocaleDateString("en-GB")}
                   </td>
-
                   <td className="py-2 px-4 border text-left">
-                    <textarea
-                      value={replies[item._id] || ""}
-                      onChange={(e) =>
-                        handleReplyChange(item._id, e.target.value)
-                      }
-                      placeholder="Write a reply..."
-                      className="w-full p-1 border rounded mb-2 placeholder-gray-400"
-                    />
 
-                    <div className="flex justify-between items-center gap-2">
-                      <button
-                        onClick={() => handleSubmitReply(item._id)}
-                        className="bg-blue-500 text-white py-1 px-3 rounded self-end ml-auto"
-                      >
-                        Submit Reply
-                      </button>
-                      {/* <button
-                        onClick={() =>
-                          handleFetchSuggestions(item._id, item.text)
-                        }
-                        className="bg-gray-300 hover:bg-gray-400 text-sm px-2 rounded"
-                      >
-                        {suggestionLoadingId === item._id
-                          ? "Loading..."
-                          : "Suggest Replies"}
-                      </button> */}
-                    </div>
+  
 
-                    {/* {suggestions?.length > 0 && (
-                      <div className="mt-2 space-y-1">
-                        {suggestions.map((suggestion, i) => (
-                          <button
-                            key={i}
-                            onClick={() =>
-                              handleSuggestionClick(item._id, suggestion)
-                            }
-                            className="block text-left text-sm bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded"
-                          >
-                            {suggestion}
-                          </button>
-                        ))}
-                      </div>
-                    )} */}
-                  </td>
+
+  {/* Reply Textarea */}
+  <textarea
+    value={replies[item._id] || ""}
+    onChange={(e) => handleReplyChange(item._id, e.target.value)}
+    placeholder="Write a reply..."
+    className="w-full p-1 border rounded mb-2 placeholder-gray-400"
+  />
+{/* Suggested Replies */}
+{Array.isArray(suggestions?.[item._id]) && suggestions[item._id].length > 0 && (
+
+<div className="flex flex-wrap gap-2 mb-2">
+  {suggestions[item._id].map((suggestion, i) => (
+    <button
+      key={i}
+      onClick={() => handleSuggestionClick(item._id, suggestion)}
+      className="bg-gray-200 hover:bg-gray-300 text-sm px-3 py-1 rounded-full transition"
+    >
+      {suggestion}
+    </button>
+  ))}
+</div>
+)}
+  {/* Buttons */}
+  <div className="flex justify-between items-center gap-2">
+    <button
+      onClick={() => handleSubmitReply(item._id)}
+      className="bg-blue-500 text-white py-1 px-3 rounded self-end ml-auto"
+    >
+      Submit Reply
+    </button>
+    <button
+      onClick={() => handleFetchSuggestions(item._id, item.text)}
+      className="bg-gray-300 hover:bg-gray-400 text-sm px-2 rounded"
+    >
+      {suggestionLoadingId === item._id ? "Loading..." : "Suggest Replies"}
+    </button>
+  </div>
+</td>
+
                 </tr>
               ))}
             </tbody>
