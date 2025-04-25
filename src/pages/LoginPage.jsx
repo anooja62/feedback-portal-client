@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../redux/authSlice';
 import { Link } from 'react-router-dom';
+import { Lock, Mail } from 'lucide-react';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -21,57 +22,67 @@ const LoginPage = () => {
   };
 
   useEffect(() => {
-    console.log("👀 user:", user);
-    console.log("🔐 token:", token);
-  
     if (user && token) {
-      // Check if the user has an admin role
       if (user.role === 'admin') {
-        navigate('/admin');  // Navigate to the admin page if the user is an admin
+        navigate('/admin');
       } else {
-        navigate('/feedback');  // Navigate to the feedback page if the user is not an admin
+        navigate('/feedback');
       }
     }
   }, [user, token, navigate]);
-  
-  
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
-        <h2 className="text-2xl font-bold text-center mb-6">Client Feedback Portal</h2>
-        {error && <p className="text-red-500 mb-4 text-sm text-center">{error}</p>}
-  
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl animate-fade-in border border-gray-200">
+        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
+          Client Feedback Portal
+        </h2>
+
+        {error && (
+          <p className="text-sm text-center text-red-500 mb-4">{error}</p>
+        )}
+
         <form onSubmit={handleLogin} className="space-y-5">
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email address</label>
-            <input
-              type="email"
-              id="email"
-              className="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              Email address
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-2.5 text-gray-400" size={18} />
+              <input
+                type="email"
+                id="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full pl-10 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+              />
+            </div>
           </div>
-  
+
           {/* Password */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              id="password"
-              className="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-2.5 text-gray-400" size={18} />
+              <input
+  type="password"
+  id="password"
+  placeholder="••••••••"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+  required
+  className="w-full pl-10 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+/>
+
+            </div>
           </div>
-  
-          {/* Submit Button */}
+
+          {/* Login Button */}
           <button
             type="submit"
             disabled={loading}
@@ -80,18 +91,17 @@ const LoginPage = () => {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-  
-        {/* Register Link */}
-        <p className="mt-4 text-center text-sm text-gray-600">
+
+        {/* Register */}
+        <p className="mt-5 text-center text-sm text-gray-600">
           New here?{' '}
-          <Link to="/register" className="text-blue-600 hover:underline">
+          <Link to="/register" className="text-blue-600 font-medium hover:underline">
             Create an account
           </Link>
         </p>
       </div>
     </div>
   );
-  
 };
 
 export default LoginPage;

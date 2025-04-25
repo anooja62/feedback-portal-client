@@ -59,6 +59,29 @@ export const submitReply = createAsyncThunk(
     }
   }
 );
+export const fetchReplySuggestions = createAsyncThunk(
+  "feedback/fetchReplySuggestions",
+  async (feedbackText, thunkAPI) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        "http://localhost:8000/api/suggest-replies",  // Make sure this matches your backend endpoint
+        { feedbackText },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,  // Include token
+          },
+        }
+      );
+      return res.data.suggestions;
+    } catch (err) {
+      console.error("❌ Suggestion Fetch Error:", err.response?.data || err.message);
+      return thunkAPI.rejectWithValue("Failed to fetch suggestions");
+    }
+  }
+);
+
+
 const initialState = {
   loading: false,
   error: null,
@@ -133,7 +156,19 @@ const feedbackSlice = createSlice({
     state.loading = false;
     state.error = action.payload;
     state.errorMessage = action.payload || 'Failed to submit reply.';
-  });
+  })
+  .addCase(fetchReplySuggestions.pending, (state) => {
+    state.loading = true;
+    state.error = null;
+  })
+  .addCase(fetchReplySuggestions.fulfilled, (state, action) => {
+    state.loading = false;
+    state.suggestions = action.payload;  
+  })
+  .addCase(fetchReplySuggestions.rejected, (state, action) => {
+    state.loading = false;
+    state.error = action.payload;
+  }); 
 },
 });
 export const { clearMessages } = feedbackSlice.actions;
